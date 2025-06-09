@@ -9,7 +9,18 @@
 
 using namespace std;
 
-TEST(Example, ExampleTest)
+class BowlingGame
 {
-    EXPECT_EQ(1, 1);
+public:
+    constexpr [[nodiscard]] uint32_t score() const noexcept
+    {
+        return 0;
+    }
+};
+
+TEST(BowlingGameTests, InitGame_ScoreIsZero)
+{
+    BowlingGame game;
+
+    ASSERT_EQ(game.score(), 0);
 }
