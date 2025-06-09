@@ -172,10 +172,50 @@ TEST_F(BowlingGame_LastFrame, WhenSpare_OneExtraRollIsCounted)
 struct PerfectGame : BowlingGame_WithEvents
 {};
 
-TEST_F(PerfectGame, ScoreIsSparta)
+TEST_F(PerfectGame, ScoreIs300)
 {
     for(int i = 0; i < 12; ++i)
         roll_strike();
 
     ASSERT_EQ(game.score(), 300);
 }
+
+struct BowlingGameParams
+{
+    const char* test_description;
+    std::vector<uint32_t> rolls;
+    size_t expected_score;
+};
+
+std::ostream& operator<<(std::ostream& out, const BowlingGameParams& params)
+{
+    out << params.test_description;
+    return out;
+}
+
+struct BowlingGameParamTests : ::testing::TestWithParam<BowlingGameParams>
+{
+    BowlingGame game;
+};
+
+TEST_P(BowlingGameParamTests, RealGameExamples)
+{
+    const BowlingGameParams param = GetParam();
+
+    for(size_t pins : param.rolls)
+    {
+        game.roll(pins);
+    }
+
+    ASSERT_EQ(game.score(), param.expected_score);
+}
+
+BowlingGameParams params[] = {
+    { "simple game - all rolls one pin", { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, 20 },
+    { "simple game - different rolls", {0, 8, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 27},
+    { "strike & spare", {10, 4, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 47},
+    { "all spares & strike", {1, 9, 1, 9, 1, 9, 1, 9, 1, 9, 1, 9, 1, 9, 1, 9, 1, 9, 1, 9, 10}, 119},
+    { "perfect game", {10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10}, 300}
+};
+
+INSTANTIATE_TEST_SUITE_P(PackOfBowlingTests, BowlingGameParamTests, ::testing::ValuesIn(params));
