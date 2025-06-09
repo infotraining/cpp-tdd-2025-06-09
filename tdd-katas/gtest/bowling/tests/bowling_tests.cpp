@@ -12,14 +12,20 @@ using namespace std;
 class BowlingGame
 {
 public:
+    constexpr BowlingGame() noexcept : score_{0u} {}
+
     [[nodiscard]] uint32_t score() const noexcept
     {
-        return 0;
+        return score_;
     }
 
     void roll(uint32_t pins) noexcept
-    {        
+    {
+        score_ += pins;
     }
+
+private:
+    uint32_t score_;
 };
 
 TEST(BowlingGameTests, WhenGameStarts_ThenScoreIsZero)
@@ -29,14 +35,28 @@ TEST(BowlingGameTests, WhenGameStarts_ThenScoreIsZero)
     ASSERT_EQ(game.score(), 0);
 }
 
-TEST(BowlingGameTests, WhenAllRollsInGutter_ThenScoreIsZero)
+struct BowlingGame_SimpleRolls : ::testing::Test
 {
     const int rolls_in_game = 20;
-    
-    BowlingGame game; // Arrange / Given
-    
-    for(int i = 0; i < rolls_in_game; ++i) // Act / When
-        game.roll(0);
+    BowlingGame game; 
 
-    ASSERT_EQ(game.score(), 0); // Assert / Then
+    void roll_many(uint32_t count, uint32_t pins)
+    {
+        for(int i = 0; i < count; ++i) 
+            game.roll(pins);
+    }
+};
+
+TEST_F(BowlingGame_SimpleRolls, WhenAllRollsInGutter_ThenScoreIsZero)
+{    
+    roll_many(rolls_in_game, 0);
+
+    ASSERT_EQ(game.score(), 0); 
+}
+
+TEST_F(BowlingGame_SimpleRolls, WhenAllRollsWithNoBonus_ThenScoreIsSumOfPins)
+{
+    roll_many(rolls_in_game, 1);
+
+    ASSERT_EQ(game.score(), 20);
 }
