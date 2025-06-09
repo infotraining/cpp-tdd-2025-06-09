@@ -13,7 +13,7 @@ using namespace std;
 class BowlingGame
 {
     static constexpr uint32_t MAX_PINS_IN_FRAME = 10;
-    static constexpr size_t MAX_ROLLS_IN_GAME = 20;
+    static constexpr size_t MAX_ROLLS_IN_GAME = 22;
 
 public:
     constexpr BowlingGame() noexcept { }
@@ -21,7 +21,7 @@ public:
     [[nodiscard]] uint32_t score() const noexcept
     {
         uint32_t result = 0;
-        for (size_t roll_index = 0; roll_index < pins_.size(); roll_index += 2)
+        for (size_t roll_index = 0; roll_index < 20; roll_index += 2)
         {
             result += frame_score(roll_index);
 
@@ -141,3 +141,28 @@ TEST_F(BowlingGame_WithEvents, WhenStrike_TwoNextRollsAreCountedTwice)
 
     ASSERT_EQ(game.score(), 42);
 }
+
+struct BowlingGame_LastFrame : BowlingGame_WithEvents
+{
+    void SetUp() override
+    {
+        roll_many(18, 1);
+    }
+};
+
+TEST_F(BowlingGame_LastFrame, WhenStrike_TwoExtraRollsAreCounted)
+{    
+    roll_strike();
+    roll_many(2, 1);
+
+    ASSERT_EQ(game.score(), 30);
+}
+
+TEST_F(BowlingGame_LastFrame, WhenSpare_OneExtraRollIsCounted)
+{    
+    roll_spare();
+    game.roll(1);
+
+    ASSERT_EQ(game.score(), 29);
+}
+
