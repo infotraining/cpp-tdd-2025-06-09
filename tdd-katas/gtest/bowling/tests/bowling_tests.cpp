@@ -13,7 +13,7 @@ using namespace std;
 class BowlingGame
 {
     static constexpr uint32_t MAX_PINS_IN_FRAME = 10;
-    static constexpr size_t MAX_ROLLS_IN_GAME = 22;
+    static constexpr size_t MAX_ROLLS_IN_GAME = 21;
 
 public:
     constexpr BowlingGame() noexcept { }
@@ -21,14 +21,18 @@ public:
     [[nodiscard]] uint32_t score() const noexcept
     {
         uint32_t result = 0;
-        for (size_t roll_index = 0; roll_index < 20; roll_index += 2)
+        for (size_t frame_index = 0, roll_index = 0; frame_index < 10; ++frame_index)
         {
-            result += frame_score(roll_index);
+            const auto [score_in_frame, frame_size] = frame_score(roll_index);
+            result += score_in_frame;
 
             if(is_strike(roll_index))
                 result += strike_bonus(roll_index);
-            else if (is_spare(roll_index))
+            
+            if (is_spare(roll_index))
                 result += spare_bonus(roll_index);
+
+            roll_index += frame_size;
         }
 
         return result;
@@ -36,11 +40,7 @@ public:
 
     void roll(uint32_t pins) noexcept
     {
-        pins_[roll_index_] = pins;
-
-        if (is_strike(roll_index_))
-            ++roll_index_;
-
+        pins_[roll_index_] = pins;        
         ++roll_index_;
     }
 
@@ -55,7 +55,7 @@ private:
 
     bool is_strike(size_t roll_index) const
     {
-        return roll_index_ % 2 == 0 && pins_[roll_index] == MAX_PINS_IN_FRAME;
+        return pins_[roll_index] == MAX_PINS_IN_FRAME;
     }
 
     uint32_t spare_bonus(size_t roll_index) const
@@ -65,12 +65,15 @@ private:
 
     uint32_t strike_bonus(size_t roll_index) const
     {
-        return pins_[roll_index + 2] + pins_[roll_index + 3];
+        return pins_[roll_index + 1] + pins_[roll_index + 2];
     }
 
-    uint32_t frame_score(size_t roll_index) const
+    std::pair<uint32_t, size_t> frame_score(size_t roll_index) const
     {
-        return pins_[roll_index] + pins_[roll_index + 1];
+        if (is_strike(roll_index))
+            return std::pair{MAX_PINS_IN_FRAME, 1};
+        
+        return std::pair{pins_[roll_index] + pins_[roll_index + 1], 2};
     }
 };
 
@@ -159,10 +162,20 @@ TEST_F(BowlingGame_LastFrame, WhenStrike_TwoExtraRollsAreCounted)
 }
 
 TEST_F(BowlingGame_LastFrame, WhenSpare_OneExtraRollIsCounted)
-{    
+{
     roll_spare();
     game.roll(1);
 
     ASSERT_EQ(game.score(), 29);
 }
 
+struct PerfectGame : BowlingGame_WithEvents
+{};
+
+TEST_F(PerfectGame, ScoreIsSparta)
+{
+    for(int i = 0; i < 12; ++i)
+        roll_strike();
+
+    ASSERT_EQ(game.score(), 300);
+}
