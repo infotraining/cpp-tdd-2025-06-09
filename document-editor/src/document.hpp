@@ -1,88 +1,80 @@
 #ifndef DOCUMENT_HPP
 #define DOCUMENT_HPP
 
-#include <sstream>
 #include <algorithm>
+#include <sstream>
 #include <string>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/string.hpp>
+#include <vector>
 
+using Content = std::vector<std::string>;
+
+namespace Helpers
+{
+    inline std::string to_upper(const std::string& str)
+    {
+        std::string result = str;
+        std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+        return result;
+    }
+
+    inline std::string to_lower(const std::string& str)
+    {
+        std::string result = str;
+        std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+        return result;
+    }
+}
 
 class Document
 {
-    std::string text_;
+    Content content_;
 
 public:
-    class Memento
-    {
-    private:
-        std::string snapshot_;
-
-        friend class Document;
-    };
-
-    Document() : text_{}
+    Document() noexcept
+        : content_{}
     {
     }
 
-    Document(const std::string& text) : text_{text}
+    Document(std::initializer_list<std::string> lines)
+        : content_{lines}
     {
     }
 
     std::string text() const
     {
-        return text_;
+        std::ostringstream oss;
+        for (const auto& line : content_)
+        {
+            oss << line << '\n';
+        }
+        return oss.str();
     }
 
-    size_t length() const
+    Content lines() const
     {
-        return text_.size();
+        return content_;
     }
 
-    void add_text(const std::string& txt)
+    void add_line(std::string line)
     {
-        text_ += txt;
+        content_.push_back(std::move(line));
     }
 
     void to_upper()
     {
-        std::transform(text_.begin(), text_.end(), text_.begin(), [](auto c) { return std::toupper(c); });        
+        std::transform(content_.begin(), content_.end(), content_.begin(), [](auto& line)
+            { return Helpers::to_upper(line); });
     }
 
     void to_lower()
     {
-        std::transform(text_.begin(), text_.end(), text_.begin(), [](auto c) { return std::tolower(c); });
+        std::transform(content_.begin(), content_.end(), content_.begin(), [](auto& line)
+            { return Helpers::to_lower(line); });
     }
 
     void clear()
     {
-        text_.clear();
-    }
-
-    template <typename TSerializer = cereal::BinaryOutputArchive>
-    Memento create_memento() const
-    {
-        std::stringstream stream;
-        TSerializer oarchive(stream);
-        oarchive(text_);
-
-        Memento memento;
-        memento.snapshot_ = stream.str();
-
-        return memento;
-    }
-
-    template <typename TDeserializer = cereal::BinaryInputArchive>
-    void set_memento(Memento& memento)
-    {
-        std::stringstream stream{memento.snapshot_};
-        TDeserializer iarchive(stream);
-        iarchive(text_);
-    }
-
-    void replace(size_t start_pos, size_t count, const std::string& text)
-    {
-        text_.replace(start_pos, count, text);
+        content_.clear();
     }
 };
 

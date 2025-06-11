@@ -80,4 +80,6 @@ add_subdirectory(tdd-katas/gtest/bowling)
 add_subdirectory(tdd-katas/gtest/recently-used-list)
 add_subdirectory(tdd-katas/gtest/mars-rover)
 
-# add_subdirectory(document-editor)
+add_subdirectory(document-editor)
+add_subdirectory(dependency-control)
+add_subdirectory(legacy-to-testable)

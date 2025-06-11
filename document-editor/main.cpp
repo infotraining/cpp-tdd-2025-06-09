@@ -2,12 +2,13 @@
 
 #include "application.hpp"
 #include "command.hpp"
-#include <boost/di.hpp>
+#include "console.hpp"
+#include "document.hpp"
+#include "clipboard.hpp"
 
 using namespace std;
-namespace di = boost::di;
 
 int main()
 {
-    // TODO
+    return 0;
 }

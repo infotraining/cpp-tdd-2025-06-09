@@ -7,7 +7,7 @@
 class MockConsole : public Console
 {
 public:
-    MOCK_METHOD(std::string, get_line, (), (override));
+    MOCK_METHOD(std::string, read_line, (), (override));
     MOCK_METHOD(void, print, (const std::string&), (override));
 };
 

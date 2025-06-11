@@ -7,7 +7,7 @@
 class Console
 {
 public:
-    virtual std::string get_line() = 0;
+    [[no_discard]] virtual std::string read_line() = 0;
     virtual void print(const std::string& line) = 0;
     virtual ~Console() = default;
 };
@@ -15,7 +15,7 @@ public:
 class Terminal : public Console
 {
 public:
-    std::string get_line() override
+    std::string read_line() override
     {
         std::string line;
         std::getline(std::cin, line);

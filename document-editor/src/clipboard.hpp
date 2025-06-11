@@ -4,27 +4,29 @@
 #include <mutex>
 #include <string>
 
+#include "document.hpp"
+
 class SharedClipboard
 {
-    std::string content_;
+    Content content_;
     mutable std::mutex content_mtx_;
 
 public:
-    SharedClipboard& instance()
+    static SharedClipboard& instance()
     {
         static SharedClipboard unique_instance;
 
         return unique_instance;
     }
 
-    std::string content() const
+    Content content() const
     {
         std::lock_guard<std::mutex> lk{content_mtx_};
 
         return content_;
     }
 
-    void set_content(const std::string& content)
+    void set_content(const Content& content)
     {
         std::lock_guard<std::mutex> lk{content_mtx_};
 

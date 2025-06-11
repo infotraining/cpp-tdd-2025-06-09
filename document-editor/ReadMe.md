@@ -10,19 +10,25 @@
 
     ```
     > Enter a command:
-    > Print
-    > [text of document]
+    Print
+    ---
+    Hello World!!!
+    ---
     ```
-  - AddText
+  - AddLine
     - prompts the user to write a line that will be appended to a document
 
     ```
     > Enter a command:
-    > AddText
-    > Write text: line1   # line1 is appended to a document
+    AddLine
+    Add new line:
+    This is TDD training for C++ programmers
     > Enter a command:
-    > Print
-    > [line1]
+    Print
+    ---
+    Hello World!!!
+    This is TDD training for C++ programmers
+    ---
     ```
 
   - ToUpper 
@@ -30,10 +36,13 @@
 
     ```
     > Enter a command:
-    > ToUpper
+    ToUpper
     > Enter a command:
-    > Print
-    > [LINE1]
+    Print
+    ---
+    HELLO WORLD!!!
+    THIS IS TDD TRAINING FOR C++ PROGRAMMERS
+    ---
     ```
 
   - ToLower

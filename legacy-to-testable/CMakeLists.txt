@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 ##############
 # Vcpkg integration - uncomment if necessery
 # if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -18,6 +16,7 @@ set(PROJECT_ID ${PROJECT_MAIN})
 project(${PROJECT_ID})
 message(STATUS "PROJECT_ID is: " ${PROJECT_ID})
 
+enable_testing()
 add_subdirectory(src)
 add_subdirectory(tests)
 
@@ -31,3 +30,5 @@ find_package(Threads REQUIRED)
 add_executable(${PROJECT_MAIN} main.cpp)
 target_link_libraries(${PROJECT_MAIN} PRIVATE ${PROJECT_LIB} ${CMAKE_THREAD_LIBS_INIT})
 target_compile_features(${PROJECT_MAIN} PUBLIC cxx_std_20)
+
+file(COPY data.dat DESTINATION "${OUTPUT_DIRECTORY}/bin")
