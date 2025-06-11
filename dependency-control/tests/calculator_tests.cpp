@@ -62,7 +62,7 @@ TEST_CASE("Dependency Injection with template parameter", "[Calculator, DI-Templ
     REQUIRE_CALL(terminal, read()).RETURN("2");
     REQUIRE_CALL(terminal, print("The sum is: 3"));
 
-    Calculator<MockTerminal> calculator(terminal);
+    Calculator calculator(terminal);
     calculator.run();
 }
 

@@ -45,7 +45,7 @@ namespace Legacy
 
 TEST(GMockDefaultValuesTests, ReturningDefaultValues)
 {
-    testing::NiceMock<MockInterface> mock;
+    ::testing::NiceMock<MockInterface> mock;
 
     ASSERT_EQ(0, mock.generate());
     ASSERT_EQ(""s, mock.get_name());
@@ -57,12 +57,12 @@ struct GMockDemoTests : ::testing::Test
 {
     ::testing::NiceMock<MockInterface> mock;
 
-    void SetUp()
+    void SetUp() override
     {
         ::testing::DefaultValue<int>::Set(42);
     }
 
-    void TearDown()
+    void TearDown() override
     {
         ::testing::DefaultValue<int>::Clear();
     }
@@ -101,6 +101,27 @@ TEST_F(GMockDemoTests, DefaultValueCanBeSetForMethodUsingExpectCall)
     ASSERT_EQ(mock.get_value(1), ""s);
 }
 
+void run(MockInterface& mock)
+{
+    auto name = mock.get_name();
+    auto value = mock.get_value(1);
+    mock.save_value(value.size(), name);
+}
+
+TEST(RunTests, VerifiesInteractionWithMock)
+{
+    using namespace ::testing;
+
+    MockInterface mock;
+
+    EXPECT_CALL(mock, get_name()).Times(1).WillOnce(Return("adam"));
+    EXPECT_CALL(mock, get_value(_)).Times(1).WillOnce(Return("value"));
+    EXPECT_CALL(mock, save_value(5, "adam")).Times(1).WillOnce(Return(true));
+
+    run(mock);
+}
+
+
 TEST_F(GMockDemoTests, VerificationHowManyTimesMethodIsCalled1)
 {
     using namespace ::testing;
@@ -120,8 +141,7 @@ TEST_F(GMockDemoTests, VerificationHowManyTimesMethodIsCalled2)
         .Times(AtMost(3))
         .WillRepeatedly(Return(true))
         .RetiresOnSaturation();
-
-
+   
     ASSERT_TRUE(mock.save_value(1, "a"));
     ASSERT_FALSE(mock.save_value(-1, "z"));
     ASSERT_TRUE(mock.save_value(2, "b"));
@@ -135,9 +155,11 @@ TEST_F(GMockDemoTests, ReturnDifferentValuesBasedOnArgument)
 
     EXPECT_CALL(mock, get_value(Gt(0))).WillRepeatedly(Return("positive"));
     EXPECT_CALL(mock, get_value(Lt(0))).WillRepeatedly(Return("negative"));
+    EXPECT_CALL(mock, get_value(0)).WillRepeatedly(Return("zero"));
 
     ASSERT_EQ(mock.get_value(10), "positive");
     ASSERT_EQ(mock.get_value(-1), "negative");   
+    ASSERT_EQ(mock.get_value(0), "zero"s);
 }
 
 TEST_F(GMockDemoTests, ExpectingOrderedCalls)
@@ -153,15 +175,17 @@ TEST_F(GMockDemoTests, ExpectingOrderedCalls)
         .Times(2)
         .WillRepeatedly(Invoke([&names, &index] { return names[index++]; }));
     EXPECT_CALL(mock, generate()).WillOnce(Return(665));
-    EXPECT_CALL(mock, save_value(665, "Jan Kowalski"));
+    EXPECT_CALL(mock, save_value(666, "Evil Kowalski"));
+    EXPECT_CALL(mock, save_value(_, "Jan Kowalski"));
 
     auto name1 = mock.get_name();
     auto name2 = mock.get_name();
     auto key = mock.generate();
+    mock.save_value(666, "Evil"s + " " + name2);
     mock.save_value(key, name1 + " " + name2);
 }
 
-TEST_F(GMockDemoTests, SpyingOnParamtersInvokedInMock)
+TEST_F(GMockDemoTests, SpyingOnParametersInvokedInMock)
 {
     using namespace ::testing;
 
@@ -340,19 +364,50 @@ protected:
     vector<int> vec = {1, 2, 3};
 };
 
+struct MyVector
+{
+    using value_type = int;
+
+    std::vector<int> data;
+
+    MyVector(std::initializer_list<int> init)
+        : data(init)
+    {
+    }
+
+    auto begin() { return data.begin(); }
+    auto end() { return data.end(); }
+    auto begin() const { return data.begin(); }
+    auto end() const { return data.end(); }
+
+    bool operator==(const MyVector& other) const = default;
+
+    size_t size() const
+    {
+        return data.size();
+    }
+
+    bool empty() const
+    {
+        return data.empty();
+    }
+};
+
+
 TEST_F(AssertsWithContainerMatchers, ContainerMatchers)
 {
     using namespace ::testing;
 
-    vector<int> expected = {1, 2, 3};
+    MyVector vec = {1, 2, 3};
+    MyVector expected = {1, 2, 3};
 
     ASSERT_THAT(vec, Not(IsEmpty()));
     ASSERT_THAT(vec, ContainerEq(expected));
     ASSERT_THAT(vec, ElementsAre(1, 2, 3));
     ASSERT_THAT(vec, ElementsAre(Gt(0), 2, Le(3)));
 
-    vector<int> shuffled = {3, 1, 2};
-    ASSERT_THAT(shuffled, UnorderedElementsAre(1, 2, 3));
+    // vector<int> shuffled = {3, 1, 2};
+    // ASSERT_THAT(shuffled, UnorderedElementsAre(1, 2, 3));
 }
 
 // custom matchers

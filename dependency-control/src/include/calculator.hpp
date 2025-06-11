@@ -187,7 +187,8 @@ namespace DependencyInjection
             void run()
             {
                 // BEWARE!!! Usage of singleton makes testing difficult!!!
-                // SingletonTerminal::instance().print("Enter first number: ");
+                //auto& terminal = SingletonTerminal::instance();
+                //terminal.print("Enter first number: ");
 
                 auto& terminal = get_terminal(); // factory method creates dependency in a controlled way
 
