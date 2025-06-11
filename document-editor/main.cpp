@@ -10,5 +10,16 @@ using namespace std;
 
 int main()
 {
-    return 0;
+    Document doc;
+    Terminal term;
+
+    EditorApp app(term);
+
+    auto print_cmd = std::make_shared<PrintCommand>(doc, term);
+    auto add_line_cmd = std::make_shared<AddLineCommand>(doc, term);
+
+    app.add_command("Print", print_cmd);
+    app.add_command("AddLine", add_line_cmd);
+
+    app.run();
 }

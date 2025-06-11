@@ -10,51 +10,6 @@
 using namespace ::testing;
 using namespace std::literals;
 
-class Command
-{
-public:
-    virtual void execute() = 0;
-    virtual ~Command() = default;
-};
-
-class EditorApp
-{
-public:
-    EditorApp(Console& console)
-        : console_(console)
-    {
-    }
-    void run() 
-    {
-        while(true)
-        {
-            console_.print("> Enter a command:"s);
-            std::string cmd_name = console_.read_line();
-
-            if (cmd_name == "Exit")
-                return;
-
-            if (auto pos = commands_.find(cmd_name); pos != commands_.end())
-            {
-                auto [cmd_name, cmd] = *pos;
-                cmd->execute();
-            }
-            else
-            {
-                console_.print("Unknown Command: " + cmd_name);
-            }
-        }
-    }
-
-    void add_command(std::string cmd_name, std::shared_ptr<Command> cmd)
-    {
-        commands_.emplace(std::move(cmd_name), std::move(cmd));
-    }
-
-private:
-    Console& console_;
-    std::unordered_map<std::string, std::shared_ptr<Command>> commands_;
-};
 
 TEST(EditorApp_Run, ShowsPromptForCommand)
 {
@@ -117,24 +72,7 @@ TEST(EditorApp_Run, UnknownCommandPrintsErrorMessage)
 ///////////////////////////
 // Print command
 
-class PrintCommand : public Command
-{
-    Document& document_;
-    Console& console_;
-public:
-    PrintCommand(Document& doc, Console& console) : document_{doc}, console_{console}
-    {}
 
-    void execute() override
-    {
-        console_.print("---");
-        for(const auto& line : document_.lines())
-        {
-            console_.print(line);
-        }
-        console_.print("---");
-    }
-};
 
 TEST(PrintCommand_Execute, PrintsDocumentContentOnConsole)
 {
@@ -147,4 +85,20 @@ TEST(PrintCommand_Execute, PrintsDocumentContentOnConsole)
 
     PrintCommand print_cmd{document, console};
     print_cmd.execute();
+}
+
+TEST(AddLineCommand_Execute, AddsConsoleLineToDocument)
+{
+    MockConsole console;
+
+    EXPECT_CALL(console, print("Add new line:"));
+    EXPECT_CALL(console, read_line())
+        .WillOnce(Return("Line3"));
+
+    Document document{"Line1", "Line2"};
+
+    AddLineCommand add_line_cmd{document, console};
+    add_line_cmd.execute();
+
+    ASSERT_THAT(document.lines(), ElementsAre("Line1", "Line2", "Line3"));
 }
